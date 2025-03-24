@@ -29,7 +29,7 @@ print(logo)
 while True:
     print(f'How often do you want to check if {STREAMER_USERNAME} is live? (Put 0 for default):')
     timer = int(input('> '))
-    if time == 0:
+    if timer == 0:
         timer = 10
         break
     elif timer < 3 and timer > 60:
