@@ -28,16 +28,16 @@ STREAMER_USERNAME = 'Twitch_Username'
 print(logo)
 while True:
     print(f'How often do you want to check if {STREAMER_USERNAME} is live? (Put 0 for default):')
-    time = int(input('> '))
+    timer = int(input('> '))
     if time == 0:
-        time = 10
+        timer = 10
         break
-    elif time < 3 and time > 60:
+    elif timer < 3 and timer > 60:
         print(f'Time is set to {time}s')
         break
-    elif time < 3:
+    elif timer < 3:
         print('Time must be grater than 2s')
-    elif time > 60:
+    elif timer > 60:
         print('Time must be under 60s')
 
 
@@ -112,10 +112,10 @@ def main():
                 send_discord_notification(stream_info)
                 # Wait until the stream is offline to avoid duplicate notifications
                 while check_stream_status(token):
-                    time.sleep(10)  # Check every few seconds
+                    time.sleep(timer)  # Check every few seconds
             else:
                 print("Streamer is not live.")
-            time.sleep(10)  # Check every few seconds
+            time.sleep(timer)  # Check every few seconds
     else:
         print("Failed to get Twitch token.")
 
