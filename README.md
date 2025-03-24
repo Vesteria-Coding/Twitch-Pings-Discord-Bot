@@ -1,3 +1,5 @@
+Download everything as a zip folder
+
 1. Run Install.bat to install everything
 
 2. Copy and paste Discord_Bot.py into a Python editor [I use Pycharm)
