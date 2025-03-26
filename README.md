@@ -19,3 +19,6 @@ Download everything as a zip folder
 9. Run the code in the Python Editor of your choice
 
 10. Enjoy!
+
+If you need any help the the dicord server:
+https://discord.gg/RWC6aWVbnb
