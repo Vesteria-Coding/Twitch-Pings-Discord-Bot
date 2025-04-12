@@ -3,7 +3,7 @@ import json
 import time
 from urllib.parse import urlencode
 
-# v1.5
+# v1.7
 
 logo = '''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
@@ -32,7 +32,7 @@ while True:
     if timer == 0:
         timer = 10
         break
-    elif timer < 3 and not timer > 60:
+    elif timer < 3 and timer <= 60:
         print(f'Time is set to {time}s')
         break
     elif timer < 3:
