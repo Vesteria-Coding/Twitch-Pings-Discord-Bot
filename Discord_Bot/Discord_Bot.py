@@ -4,7 +4,7 @@ import time
 from urllib.parse import urlencode
 from urllib.parse import urlparse
 
-# v2.0
+# v2.1
 
 logo = '''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
@@ -24,6 +24,9 @@ WEBHOOK_URL = 'Discord_Webhook_URL'
 
 # Streamer username
 STREAMER_USERNAME = 'Streamer_Name'
+
+# Sidebar color
+color = 0x9146FF  # Twitch purple
 
 # Set & check interval
 print(logo)
@@ -94,7 +97,7 @@ def send_discord_notification(stream_info):
     embed = {
         "title": f"{stream_info['streamer_name']} is live!",
         "description": f"{stream_info['stream_title']}\n{stream_info['stream_url']}",
-        "color": 0x9146FF  # Twitch purple
+        "color": color
     }
 
     payload = json.dumps({
