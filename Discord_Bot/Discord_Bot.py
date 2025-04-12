@@ -2,8 +2,9 @@ import http.client
 import json
 import time
 from urllib.parse import urlencode
+from urllib.parse import urlparse
 
-# v1.7
+# v2.0
 
 logo = '''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
@@ -15,14 +16,14 @@ logo = '''
 '''
 
 # Twitch API credentials
-CLIENT_ID = 'Client_ID'
-CLIENT_SECRET = 'Client_ID_Secret'
+CLIENT_ID = 'Client_ID_Here'
+CLIENT_SECRET = 'Client_ID_Secret_Here'
 
 # Discord webhook URL
 WEBHOOK_URL = 'Webhook_URL_Here'
 
 # Streamer username
-STREAMER_USERNAME = 'Twitch_Username'
+STREAMER_USERNAME = 'Streamer_Name_Here'
 
 # Set & check interval
 print(logo)
@@ -32,13 +33,13 @@ while True:
     if timer == 0:
         timer = 10
         break
-    elif timer < 3 and timer <= 60:
-        print(f'Time is set to {time}s')
+    elif timer < 3 or timer <= 60:
+        print(f'Time is set to {timer}s')
         break
     elif timer < 3:
         print('Time must be grater than 2s')
     elif timer > 60:
-        print('Time must be under 60s')
+        print('Time must be 60s or lower')
 
 
 # Step 1: Get OAuth token from Twitch
@@ -89,17 +90,31 @@ def check_stream_status(token):
 # Step 3: Send notification to Discord
 def send_discord_notification(stream_info):
     conn = http.client.HTTPSConnection("discord.com")
-    message = f"@everyone {stream_info['streamer_name']} is live; {stream_info['stream_title']}! {stream_info['stream_url']}"
-    payload = json.dumps({"content": message})
+
+    embed = {
+        "title": f"{stream_info['streamer_name']} is live!",
+        "description": f"{stream_info['stream_title']}\n{stream_info['stream_url']}",
+        "color": 0x9146FF  # Twitch purple
+    }
+
+    payload = json.dumps({
+        "content": "@everyone",
+        "embeds": [embed]
+    })
+
     headers = {
         'Content-Type': 'application/json'
     }
-    conn.request("POST", WEBHOOK_URL.split("discord.com")[1], payload, headers)
+
+    # Safely parse webhook path
+    parsed_url = urlparse(WEBHOOK_URL)
+    conn.request("POST", parsed_url.path, payload, headers)
+
     response = conn.getresponse()
     if response.status == 204:
         print("Notification sent successfully!")
     else:
-        print(f"Failed to send notification: {response.status}")
+        print(f"Failed to send notification: {response.status}, reason: {response.reason}")
 
 # Continuous monitoring
 def main():
