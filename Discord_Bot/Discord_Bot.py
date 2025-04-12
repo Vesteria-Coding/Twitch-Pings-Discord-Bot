@@ -32,7 +32,7 @@ while True:
     if timer == 0:
         timer = 10
         break
-    elif timer < 3 and timer > 60:
+    elif timer < 3 and timer < 60:
         print(f'Time is set to {time}s')
         break
     elif timer < 3:
