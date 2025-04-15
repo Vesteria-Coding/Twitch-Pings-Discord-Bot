@@ -1,10 +1,11 @@
-import http.client
-import json
-import time
 from urllib.parse import urlencode
 from urllib.parse import urlparse
+import http.client
+import time as t
+import socket
+import json
 
-# v2.1
+# v2.2
 
 logo = '''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
@@ -17,7 +18,7 @@ logo = '''
 
 # Twitch API credentials
 CLIENT_ID = 'Twitch_Client_ID'
-CLIENT_SECRET = 'Twitch_Client_ID'
+CLIENT_SECRET = 'Twitch_Client_ID_Secret'
 
 # Discord webhook URL
 WEBHOOK_URL = 'Discord_Webhook_URL'
@@ -28,6 +29,10 @@ STREAMER_USERNAME = 'Streamer_Name'
 # Sidebar color
 color = 0x9146FF  # Twitch purple
 
+# Others setup
+send_message = False
+error_times = 0
+
 # Set & check interval
 print(logo)
 while True:
@@ -36,13 +41,15 @@ while True:
     if timer == 0:
         timer = 10
         break
-    elif timer < 3 or timer <= 60:
+    elif timer >= 3 and timer <= 60:
         print(f'Time is set to {timer}s')
         break
     elif timer < 3:
         print('Time must be grater than 2s')
     elif timer > 60:
         print('Time must be 60s or lower')
+    else:
+        break
 
 
 # Step 1: Get OAuth token from Twitch
@@ -67,28 +74,37 @@ def get_twitch_token():
 
 # Step 2: Check if the streamer is live
 def check_stream_status(token):
-    conn = http.client.HTTPSConnection("api.twitch.tv")
-    headers = {
-        'Client-ID': CLIENT_ID,
-        'Authorization': f'Bearer {token}'
-    }
-    conn.request("GET", f"/helix/streams?user_login={STREAMER_USERNAME}", None, headers)
-    response = conn.getresponse()
-    if response.status == 200:
-        data = json.loads(response.read().decode())['data']
-        if data:
-            # Streamer is live
-            return {
-                'streamer_name': data[0]['user_name'],
-                'stream_title': data[0]['title'],
-                'stream_url': f"https://www.twitch.tv/{data[0]['user_name']}"
-            }
+    global send_message
+    send_message = True
+    try:
+        conn = http.client.HTTPSConnection("api.twitch.tv")
+        headers = {
+            'Client-ID': CLIENT_ID,
+            'Authorization': f'Bearer {token}'
+        }
+        conn.request("GET", f"/helix/streams?user_login={STREAMER_USERNAME}", None, headers)
+        response = conn.getresponse()
+        if response.status == 200:
+            data = json.loads(response.read().decode())['data']
+            if data:
+                # Streamer is live
+                return {
+                    'streamer_name': data[0]['user_name'],
+                    'stream_title': data[0]['title'],
+                    'stream_url': f"https://www.twitch.tv/{data[0]['user_name']}"
+                }
+            else:
+                # Streamer is not live
+                return None
         else:
-            # Streamer is not live
+            print(f"Failed to fetch stream status: {response.status}")
             return None
-    else:
-        print(f"Failed to fetch stream status: {response.status}")
-        return None
+    except socket.gaierror:
+        print('Network error. Check your network connection.')
+        send_message = False
+    except Exception as error_message:
+        print(f"An unexpected error occurred with checking Twitch' API: {error_message}")
+        send_message = False
 
 # Step 3: Send notification to Discord
 def send_discord_notification(stream_info):
@@ -130,10 +146,11 @@ def main():
                 send_discord_notification(stream_info)
                 # Wait until the stream is offline to avoid duplicate notifications
                 while check_stream_status(token):
-                    time.sleep(timer)  # Check every few seconds
+                    t.sleep(timer)  # Check every few seconds
             else:
-                print("Streamer is not live.")
-            time.sleep(timer)  # Check every few seconds
+                if send_message:
+                    print("Streamer is not live.")
+            t.sleep(timer)  # Check every few seconds
     else:
         print("Failed to get Twitch token.")
 
