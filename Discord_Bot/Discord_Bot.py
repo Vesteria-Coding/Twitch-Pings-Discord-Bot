@@ -1,11 +1,15 @@
 from urllib.parse import urlencode
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
+from datetime import datetime
 import http.client
 import time as t
+import logging
+import tzlocal
 import socket
 import json
 
-# v2.2
+# v2.3
 
 logo = '''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
@@ -31,7 +35,22 @@ color = 0x9146FF  # Twitch purple
 
 # Others setup
 send_message = False
-error_times = 0
+
+# logging set up
+logging.basicConfig(
+    filename="Discord_Bot.log",
+    encoding="utf-8",
+    filemode="a",
+    format='{asctime} |:| {levelname}: {message}',
+    style="{",
+    datefmt="%B %d, %Y ; %I:%M %p",
+    level=logging.DEBUG,
+)
+local_tz = tzlocal.get_localzone()
+
+def custom_time(*args):
+    return datetime.now(local_tz).timetuple()
+
 
 # Set & check interval
 print(logo)
@@ -102,9 +121,11 @@ def check_stream_status(token):
     except socket.gaierror:
         print('Network error. Check your network connection.')
         send_message = False
+        logging.error("Network error. Check your network connection.")
     except Exception as error_message:
         print(f"An unexpected error occurred with checking Twitch' API: {error_message}")
         send_message = False
+        logging.critical(error_message)
 
 # Step 3: Send notification to Discord
 def send_discord_notification(stream_info):
@@ -137,6 +158,7 @@ def send_discord_notification(stream_info):
 
 # Continuous monitoring
 def main():
+    logging.info('Bot Start Up')
     token = get_twitch_token()
     if token:
         print("Monitoring for live streams...")
@@ -144,6 +166,7 @@ def main():
             stream_info = check_stream_status(token)
             if stream_info:
                 send_discord_notification(stream_info)
+                logging.debug('Streamer Went Live')
                 # Wait until the stream is offline to avoid duplicate notifications
                 while check_stream_status(token):
                     t.sleep(timer)  # Check every few seconds
