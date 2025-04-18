@@ -1,6 +1,5 @@
 from urllib.parse import urlencode
 from urllib.parse import urlparse
-from zoneinfo import ZoneInfo
 from datetime import datetime
 import http.client
 import time as t
@@ -9,7 +8,7 @@ import tzlocal
 import socket
 import json
 
-# v2.4
+# v2.5
 
 logo = r'''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
@@ -35,6 +34,7 @@ color = 0x9146FF  # Twitch purple
 
 # Others setup
 send_message = False
+is_live = False
 
 # logging set up
 logging.basicConfig(
@@ -52,24 +52,26 @@ def custom_time(*args):
     return datetime.now(local_tz).timetuple()
 
 
-# Set & check interval
-print(logo)
-while True:
-    print(f'How often do you want to check if {STREAMER_USERNAME} is live? (Put 0 for default):')
-    timer = int(input('> '))
-    if timer == 0:
-        timer = 10
-        break
-    elif timer >= 3 and timer <= 60:
-        print(f'Time is set to {timer}s')
-        break
-    elif timer < 3:
-        print('Time must be grater than 2s')
-    elif timer > 60:
-        print('Time must be 60s or lower')
-    else:
-        break
 
+# Set & check interval
+def setup():
+    print(logo)
+    while True:
+        print(f'How often do you want to check if {STREAMER_USERNAME} is live? (Put 0 for default):')
+        try:
+            timer = int(input('> '))
+            if timer == 0:
+                print('Using Default Timer: 10s')
+                return 10
+            elif 3 <= timer <= 60:
+                print(f'Time Is Set To {timer}s')
+                return timer
+            elif timer < 3:
+                print('Time Must Be 2s or More.')
+            elif timer > 60:
+                print('Time Must Be 60s or Lower.')
+        except ValueError:
+            print('Please Enter a Valid Number.')
 
 # Step 1: Get OAuth token from Twitch
 def get_twitch_token():
@@ -119,13 +121,13 @@ def check_stream_status(token):
             print(f"Failed to fetch stream status: {response.status}")
             return None
     except socket.gaierror:
-        print('Network error. Check your network connection.')
+        print('Network Error. Check Your Network Connection.')
         send_message = False
         logging.error("Network error. Check your network connection.")
     except Exception as error_message:
-        print(f"An unexpected error occurred with checking Twitch' API: {error_message}")
+        print(f"An Unexpected Error Occurred With Checking Twitch's API: {error_message}.")
         send_message = False
-        logging.critical(error_message)
+        logging.critical(f'{error_message}.')
 
 # Step 3: Send notification to Discord
 def send_discord_notification(stream_info):
@@ -152,30 +154,36 @@ def send_discord_notification(stream_info):
 
     response = conn.getresponse()
     if response.status == 204:
-        print("Notification sent successfully!")
+        print("Notification Sent Successfully!")
+        logging.debug('Notification sent successfully!')
     else:
-        print(f"Failed to send notification: {response.status}, reason: {response.reason}")
+        print(f"Failed To Send Notification: {response.status}, Reason: {response.reason}")
 
 # Continuous monitoring
 def main():
-    logging.info('Bot Start Up')
+    global is_live
+    timer = setup()
+    logging.info(f'Bot Start Up Monitoring {STREAMER_USERNAME}.')
     token = get_twitch_token()
     if token:
-        print("Monitoring for live streams...")
+        print("Monitoring For live streams...")
         while True:
             stream_info = check_stream_status(token)
             if stream_info:
-                send_discord_notification(stream_info)
-                logging.debug('Streamer Went Live')
+                if not is_live:
+                    send_discord_notification(stream_info)
+                    logging.debug('Streamer Went Live')
+                    is_live = True
                 # Wait until the stream is offline to avoid duplicate notifications
                 while check_stream_status(token):
                     t.sleep(timer)  # Check every few seconds
             else:
                 if send_message:
-                    print("Streamer is not live.")
+                    print("Streamer Is Not Live.")
+                    is_live = False
             t.sleep(timer)  # Check every few seconds
     else:
-        print("Failed to get Twitch token.")
+        print("Failed To Get Twitch Token.")
 
 if __name__ == "__main__":
     main()
