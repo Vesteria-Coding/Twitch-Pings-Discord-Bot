@@ -8,7 +8,7 @@ import tzlocal
 import socket
 import json
 
-# v2.5
+# v2.6
 
 logo = r'''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
@@ -21,10 +21,10 @@ logo = r'''
 
 # Twitch API credentials
 CLIENT_ID = 'Twitch_Client_ID'
-CLIENT_SECRET = 'Twitch_Client_ID_Secret'
+CLIENT_SECRET = 'Twitch_Client_ID'
 
 # Discord webhook URL
-WEBHOOK_URL = 'Discord_Webhook_URL'
+WEBHOOK_URL = 'Twitch_Client_ID'
 
 # Streamer username
 STREAMER_USERNAME = 'Streamer_Name'
@@ -36,7 +36,7 @@ color = 0x9146FF  # Twitch purple
 send_message = False
 is_live = False
 
-# logging set up
+# logging setup
 logging.basicConfig(
     filename="Discord_Bot.log",
     encoding="utf-8",
@@ -131,33 +131,38 @@ def check_stream_status(token):
 
 # Step 3: Send notification to Discord
 def send_discord_notification(stream_info):
-    conn = http.client.HTTPSConnection("discord.com")
+    try:
+        conn = http.client.HTTPSConnection("discord.com")
 
-    embed = {
-        "title": f"{stream_info['streamer_name']} is live!",
-        "description": f"{stream_info['stream_title']}\n{stream_info['stream_url']}",
-        "color": color
-    }
+        embed = {
+            "title": f"{stream_info['streamer_name']} is live!",
+            "description": f"{stream_info['stream_title']}\n{stream_info['stream_url']}",
+            "color": color
+        }
 
-    payload = json.dumps({
-        "content": "@everyone",
-        "embeds": [embed]
-    })
+        payload = json.dumps({
+            "content": "@everyone",
+            "username": "Twitch Pings",
+            "avatar_url": "https://github.com/Vesteria-Coding/Twitch-Pings-Discord-Bot/blob/main/Discord_Bot/Logo.png?raw=true",
+            "embeds": [embed]
+        })
 
-    headers = {
-        'Content-Type': 'application/json'
-    }
+        headers = {
+            'Content-Type': 'application/json'
+        }
 
-    # Safely parse webhook path
-    parsed_url = urlparse(WEBHOOK_URL)
-    conn.request("POST", parsed_url.path, payload, headers)
+        # Safely parse webhook path
+        parsed_url = urlparse(WEBHOOK_URL)
+        conn.request("POST", parsed_url.path, payload, headers)
 
-    response = conn.getresponse()
-    if response.status == 204:
-        print("Notification Sent Successfully!")
-        logging.debug('Notification sent successfully!')
-    else:
-        print(f"Failed To Send Notification: {response.status}, Reason: {response.reason}")
+        response = conn.getresponse()
+        if response.status == 204:
+            print("Notification Sent Successfully!")
+            logging.debug('Notification sent successfully!')
+        else:
+            print(f"Failed To Send Notification: {response.status}, Reason: {response.reason}")
+    except Exception as i:
+        pass
 
 # Continuous monitoring
 def main():
