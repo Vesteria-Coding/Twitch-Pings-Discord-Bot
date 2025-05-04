@@ -8,7 +8,7 @@ import tzlocal
 import socket
 import json
 
-# v2.6
+# v2.7
 
 logo = r'''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
@@ -61,15 +61,15 @@ def setup():
         try:
             timer = int(input('> '))
             if timer == 0:
-                print('Using Default Timer: 10s')
-                return 10
-            elif 3 <= timer <= 60:
+                print('Using Default Timer: 30s')
+                return 30
+            elif 3 <= timer <= 120:
                 print(f'Time Is Set To {timer}s')
                 return timer
             elif timer < 3:
                 print('Time Must Be 2s or More.')
-            elif timer > 60:
-                print('Time Must Be 60s or Lower.')
+            elif timer > 120:
+                print('Time Must Be 120s or Lower.')
         except ValueError:
             print('Please Enter a Valid Number.')
 
