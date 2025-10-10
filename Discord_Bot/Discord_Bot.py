@@ -55,7 +55,7 @@ def get_steam_info(TOKEN):
     }
     response = requests.get(f"https://api.twitch.tv/helix/streams?user_login={STREAMER_USERNAME}", headers=headers)
     data = response.json()
-    USERNAME = data["data"][0]["user_name"]
+    USERNAME = data["data"][0]["user_name"].title()
     TITLE = data["data"][0]["title"]
     return USERNAME, TITLE
 
