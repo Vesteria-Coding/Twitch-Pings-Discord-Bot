@@ -55,9 +55,10 @@ def get_steam_info(TOKEN):
     }
     response = requests.get(f"https://api.twitch.tv/helix/streams?user_login={STREAMER_USERNAME}", headers=headers)
     data = response.json()
-    USERNAME = data["data"][0]["user_name"].title()
-    TITLE = data["data"][0]["title"]
-    return USERNAME, TITLE
+    if data:
+        USERNAME = data["data"][0]["user_name"].title()
+        TITLE = data["data"][0]["title"]
+        return USERNAME, TITLE
 
 def send_discord_notification():
     USERNAME, TITLE = get_steam_info(get_twitch_token())
@@ -75,18 +76,22 @@ def send_discord_notification():
     requests.post(WEBHOOK_URL, json=payload)
 
 def main():
+    TOKEN = get_twitch_token()
     while True:
-        while not check_stream_status(get_twitch_token()):
+        while not check_stream_status(TOKEN):
             print("streamer is not live")
             t.sleep(INTERVAL)
-        if check_stream_status(get_twitch_token()):
+        if check_stream_status(TOKEN):
             send_discord_notification()
-            while check_stream_status(get_twitch_token()):
+            while check_stream_status(TOKEN):
                 print("streamer is live")
                 t.sleep(INTERVAL)
 
 if __name__ == "__main__":
     try:
         main()
+    except KeyboardInterrupt:
+        print("Closing...")
+        quit(0)
     except Exception as e:
         print(e)
