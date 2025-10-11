@@ -48,7 +48,7 @@ def check_stream_status(TOKEN):
         else:
             return False
 
-def get_steam_info(TOKEN):
+def get_stream_info(TOKEN):
     headers = {
         "Authorization": f"Bearer {TOKEN}",
         "Client-Id": CLIENT_ID
@@ -61,7 +61,7 @@ def get_steam_info(TOKEN):
         return USERNAME, TITLE
 
 def send_discord_notification():
-    USERNAME, TITLE = get_steam_info(get_twitch_token())
+    USERNAME, TITLE = get_stream_info(get_twitch_token())
     embed = {
         "title": f"{USERNAME} is Live!",
         "description": TITLE,
