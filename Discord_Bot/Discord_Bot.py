@@ -4,7 +4,7 @@ import requests
 import time as t
 from dotenv import load_dotenv
 
-# v3.1
+# v3.2
 logo = r'''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
  |_   _| __      __ (_) | |_    ___  | |__     |  _ \  (_)  _ __     __ _   ___    |  _ \  (_)  ___    ___    ___    _ __    __| |   | __ )    ___   | |_ 
@@ -68,7 +68,7 @@ def send_discord_notification():
     USERNAME, TITLE, URL, PROFILE_PICTURE = get_steam_info()
     embed = {
         "title": f"{USERNAME} is Live!",
-        "description": f'{TITLE}\n{URL}',
+        "description": f'{TITLE}\n\n{URL}',
         "color": 0x9146FF,
         "thumbnail": {
             "url": PROFILE_PICTURE
@@ -102,3 +102,4 @@ if __name__ == "__main__":
         quit(0)
     except Exception as e:
         print(e)
+
