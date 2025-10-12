@@ -23,10 +23,6 @@ CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 STREAMER_USERNAME = os.environ.get("STREAMER_USERNAME")
 INTERVAL = 30
 
-def clear_console():
-    sys.stdout.write("\033[2J\033[H")
-    sys.stdout.flush()
-
 def get_twitch_token():
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -97,13 +93,11 @@ def send_discord_notification():
 def main():
     while True:
         while not check_stream_status():
-            clear_console()
             print("streamer is not live")
             t.sleep(INTERVAL)
         if check_stream_status():
             send_discord_notification()
             while check_stream_status():
-                clear_console()
                 print("streamer is live")
                 t.sleep(INTERVAL)
 
@@ -112,9 +106,7 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        clear_console()
         print("Closing...")
         quit(0)
     except Exception as e:
-        clear_console()
         print(e)
