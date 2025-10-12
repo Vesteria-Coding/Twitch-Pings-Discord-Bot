@@ -59,14 +59,20 @@ def get_steam_info():
         USERNAME = data.get("data")[0].get("user_name").title()
         TITLE = data.get("data")[0].get("title")
         URL = f'https://www.twitch.tv/{data.get("data")[0].get("user_name")}'
-        return USERNAME, TITLE, URL
+        PROFILE_PICTURE = data.get("data")[0].get("profile_image_url")
+        user_data = requests.get(f"https://api.twitch.tv/helix/users?login={STREAMER_USERNAME}", headers=headers).json()
+        PROFILE_PICTURE = user_data.get("data")[0].get("profile_image_url")
+        return USERNAME, TITLE, URL, PROFILE_PICTURE
 
 def send_discord_notification():
-    USERNAME, TITLE, URL = get_steam_info()
+    USERNAME, TITLE, URL, PROFILE_PICTURE = get_steam_info()
     embed = {
         "title": f"{USERNAME} is Live!",
         "description": f'{TITLE}\n{URL}',
-        "color": 0x9146FF
+        "color": 0x9146FF,
+        "thumbnail": {
+            "url": PROFILE_PICTURE
+        }
     }
     payload = {
         "content": "||@everyone||",
