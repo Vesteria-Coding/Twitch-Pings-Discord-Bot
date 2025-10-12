@@ -4,7 +4,7 @@ import requests
 import time as t
 from dotenv import load_dotenv
 
-# v3
+# v3.1
 logo = r'''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
  |_   _| __      __ (_) | |_    ___  | |__     |  _ \  (_)  _ __     __ _   ___    |  _ \  (_)  ___    ___    ___    _ __    __| |   | __ )    ___   | |_ 
@@ -33,9 +33,9 @@ def get_twitch_token():
     }
     response = requests.post("https://id.twitch.tv/oauth2/token", headers=headers, params=params)
     data = response.json()
-    return data["access_token"]
+    return data.get("access_token")
 
-def check_stream_status(TOKEN):
+def check_stream_status():
     headers = {
         "Authorization": f"Bearer {TOKEN}",
         "Client-Id": CLIENT_ID
@@ -43,12 +43,12 @@ def check_stream_status(TOKEN):
     response = requests.get(f"https://api.twitch.tv/helix/streams?user_login={STREAMER_USERNAME}", headers=headers)
     data = response.json()
     if data:
-        if data["data"][0]["type"] == "live":
+        if data.get("data")[0].get("type") == "live":
             return True
         else:
             return False
 
-def get_stream_info(TOKEN):
+def get_steam_info():
     headers = {
         "Authorization": f"Bearer {TOKEN}",
         "Client-Id": CLIENT_ID
@@ -56,15 +56,16 @@ def get_stream_info(TOKEN):
     response = requests.get(f"https://api.twitch.tv/helix/streams?user_login={STREAMER_USERNAME}", headers=headers)
     data = response.json()
     if data:
-        USERNAME = data["data"][0]["user_name"].title()
-        TITLE = data["data"][0]["title"]
-        return USERNAME, TITLE
+        USERNAME = data.get("data")[0].get("user_name").title()
+        TITLE = data.get("data")[0].get("title")
+        URL = f'https://www.twitch.tv/{data.get("data")[0].get("user_name")}'
+        return USERNAME, TITLE, URL
 
 def send_discord_notification():
-    USERNAME, TITLE = get_stream_info(get_twitch_token())
+    USERNAME, TITLE, URL = get_steam_info()
     embed = {
         "title": f"{USERNAME} is Live!",
-        "description": TITLE,
+        "description": f'{TITLE}\n{URL}',
         "color": 0x9146FF
     }
     payload = {
@@ -76,18 +77,18 @@ def send_discord_notification():
     requests.post(WEBHOOK_URL, json=payload)
 
 def main():
-    TOKEN = get_twitch_token()
     while True:
-        while not check_stream_status(TOKEN):
+        while not check_stream_status():
             print("streamer is not live")
             t.sleep(INTERVAL)
-        if check_stream_status(TOKEN):
+        if check_stream_status():
             send_discord_notification()
-            while check_stream_status(TOKEN):
+            while check_stream_status():
                 print("streamer is live")
                 t.sleep(INTERVAL)
 
 if __name__ == "__main__":
+    TOKEN = get_twitch_token()
     try:
         main()
     except KeyboardInterrupt:
