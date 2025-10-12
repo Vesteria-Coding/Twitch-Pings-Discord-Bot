@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import requests
 import time as t
@@ -21,6 +22,10 @@ CLIENT_ID = os.environ.get("CLIENT_ID")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 STREAMER_USERNAME = os.environ.get("STREAMER_USERNAME")
 INTERVAL = 30
+
+def clear_console():
+    sys.stdout.write("\033[2J\033[H")
+    sys.stdout.flush()
 
 def get_twitch_token():
     headers = {
@@ -59,19 +64,25 @@ def get_steam_info():
         USERNAME = data.get("data")[0].get("user_name").title()
         TITLE = data.get("data")[0].get("title")
         URL = f'https://www.twitch.tv/{data.get("data")[0].get("user_name")}'
-        PROFILE_PICTURE = data.get("data")[0].get("profile_image_url")
-        user_data = requests.get(f"https://api.twitch.tv/helix/users?login={STREAMER_USERNAME}", headers=headers).json()
-        PROFILE_PICTURE = user_data.get("data")[0].get("profile_image_url")
-        return USERNAME, TITLE, URL, PROFILE_PICTURE
+        GAME_ID = data.get('data')[0].get('game_id')
+        response = requests.get(f"https://api.twitch.tv/helix/games?id={GAME_ID}", headers=headers)
+        game_data = response.json()
+        BOX_ART = game_data.get("data")[0].get('box_art_url').replace("{width}", "285").replace("{height}", "380")
+        return USERNAME, TITLE, URL, BOX_ART
+
 
 def send_discord_notification():
-    USERNAME, TITLE, URL, PROFILE_PICTURE = get_steam_info()
+    USERNAME, TITLE, URL, BOX_ART = get_steam_info()
     embed = {
-        "title": f"{USERNAME} is Live!",
         "description": f'{TITLE}\n\n{URL}',
         "color": 0x9146FF,
         "thumbnail": {
-            "url": PROFILE_PICTURE
+            "url": BOX_ART
+        },
+        "author": {
+            "name": f"{USERNAME} is Live!",
+            "url": URL,
+            "icon_url": f"https://avatar-resolver.vercel.app/twitch/{USERNAME}"
         }
     }
     payload = {
@@ -80,16 +91,19 @@ def send_discord_notification():
         "avatar_url": "https://github.com/Vesteria-Coding/Twitch-Pings-Discord-Bot/blob/main/Discord_Bot/Logo.png?raw=true",
         "embeds": [embed]
     }
+
     requests.post(WEBHOOK_URL, json=payload)
 
 def main():
     while True:
         while not check_stream_status():
+            clear_console()
             print("streamer is not live")
             t.sleep(INTERVAL)
         if check_stream_status():
             send_discord_notification()
             while check_stream_status():
+                clear_console()
                 print("streamer is live")
                 t.sleep(INTERVAL)
 
@@ -98,8 +112,9 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
+        clear_console()
         print("Closing...")
         quit(0)
     except Exception as e:
+        clear_console()
         print(e)
-
