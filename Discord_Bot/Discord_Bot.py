@@ -5,7 +5,7 @@ import requests
 import time as t
 from dotenv import load_dotenv
 
-# v3.2
+# v3.3
 logo = r'''
   _____              _   _            _         ____    _                           ____    _                                   _     ____            _   
  |_   _| __      __ (_) | |_    ___  | |__     |  _ \  (_)  _ __     __ _   ___    |  _ \  (_)  ___    ___    ___    _ __    __| |   | __ )    ___   | |_ 
@@ -17,11 +17,11 @@ logo = r'''
 
 # Setup Credentials
 load_dotenv()
+INTERVAL = 30
 CLIENT_ID = os.environ.get("CLIENT_ID")
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 STREAMER_USERNAME = os.environ.get("STREAMER_USERNAME")
-INTERVAL = 30
 
 def get_twitch_token():
     headers = {
@@ -109,4 +109,5 @@ if __name__ == "__main__":
         quit(0)
     except Exception as e:
         print(e)
+
 
