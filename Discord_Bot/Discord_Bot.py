@@ -17,8 +17,8 @@ logo = r'''
 
 # Setup Credentials
 load_dotenv()
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 CLIENT_ID = os.environ.get("CLIENT_ID")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
 STREAMER_USERNAME = os.environ.get("STREAMER_USERNAME")
 INTERVAL = 30
@@ -49,7 +49,7 @@ def check_stream_status():
         else:
             return False
 
-def get_steam_info():
+def get_stream_info():
     headers = {
         "Authorization": f"Bearer {TOKEN}",
         "Client-Id": CLIENT_ID
@@ -68,7 +68,7 @@ def get_steam_info():
 
 
 def send_discord_notification():
-    USERNAME, TITLE, URL, BOX_ART = get_steam_info()
+    USERNAME, TITLE, URL, BOX_ART = get_stream_info()
     embed = {
         "description": f'{TITLE}\n\n{URL}',
         "color": 0x9146FF,
@@ -87,7 +87,6 @@ def send_discord_notification():
         "avatar_url": "https://github.com/Vesteria-Coding/Twitch-Pings-Discord-Bot/blob/main/Discord_Bot/Logo.png?raw=true",
         "embeds": [embed]
     }
-
     requests.post(WEBHOOK_URL, json=payload)
 
 def main():
@@ -110,3 +109,4 @@ if __name__ == "__main__":
         quit(0)
     except Exception as e:
         print(e)
+
